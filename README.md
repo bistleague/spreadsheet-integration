@@ -1,11 +1,6 @@
 # spreadsheet-integration
 BIST League back-end to Google Spreadsheet integration
 
-### Google Spreadsheet Link
-```
-https://docs.google.com/spreadsheets/d/1Cec0FCoiqPTXWYeMylkRQmjgAR_-U5aUcHbR70RkDvs/edit?usp=sharing
-```
-
 ### Environment Variables
 ```dotenv
 PORT=<port>
