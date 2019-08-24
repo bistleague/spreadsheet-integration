@@ -1,0 +1,5 @@
+node_modules/
+.env
+bistleague-client-staging.json
+client_secret.json
+package-lock.json
