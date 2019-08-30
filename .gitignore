@@ -1,5 +1,8 @@
 node_modules/
 .env
 bistleague-client-staging.json
+bistleague-client-prod.json
 client_secret.json
 package-lock.json
+.idea/
+.env.yaml
