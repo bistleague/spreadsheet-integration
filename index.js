@@ -1,4 +1,4 @@
-const { accessSpreadsheet } = require('./lib/spreadsheet');
+const { accessSpreadsheet } = require('./spreadsheet');
 
 /**
  * Export to Sheets Worker Function
@@ -6,13 +6,14 @@ const { accessSpreadsheet } = require('./lib/spreadsheet');
  * @param {object} data The event payload.
  * @param {object} context The event metadata.
  */
-exports.exportToSheets = (data, context) => {
+exports.exportToSheets = async (data, context) => {
   console.log("[*] Begin Google Sheets integration cron job...");
-  accessSpreadsheet()
-      .then(() => {
-        console.log("[x] Cron job executed successfully.");
-      })
-      .catch((e) => {
-        console.log("[x] Cron job failed to execute.", e);
-      });
+  try {
+    await accessSpreadsheet();
+    console.log("[x] Cron job executed successfully.");
+  } catch (e) {
+    console.log("[x] Cron job failed to execute.", e);
+  }
 };
+
+exports.exportToSheets();

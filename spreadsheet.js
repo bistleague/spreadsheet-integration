@@ -48,10 +48,10 @@ function translateTeamsStatusesToString(data) {
     data.semifinal_submission_file.url = null;
   }
   if (data.preliminary_submission_last_submitted) {
-    data.preliminary_submission_last_submitted = new Date(data.preliminary_submission_last_submitted).toLocaleString();
+    data.preliminary_submission_last_submitted = new Date(data.preliminary_submission_last_submitted).toLocaleString('en-GB', { timeZone: 'Asia/Jakarta' });
   }
   if (data.semifinal_submission_last_submitted) {
-    data.semifinal_submission_last_submitted = new Date(data.semifinal_submission_last_submitted).toLocaleString();
+    data.semifinal_submission_last_submitted = new Date(data.semifinal_submission_last_submitted).toLocaleString('en-GB', { timeZone: 'Asia/Jakarta' });
   }
 }
 
@@ -77,7 +77,7 @@ async function updateTeamsSheet(data, sheet, sheetRows) {
     translateTeamsStatusesToString(row);
     const values = {
       teamid: row.team_id,
-      timestamp: new Date(row.created_time).toLocaleString(),
+      timestamp: new Date(row.created_time).toLocaleString('en-GB', { timeZone: 'Asia/Jakarta' }),
       teamname: row.name,
       university: row.university,
       proofofpaymenturl: row.proof_of_payment_file.url,
@@ -101,6 +101,7 @@ async function updateTeamMembersSheet(data, sheet, sheetRows) {
     translateTeamMembersStatusesToString(row);
     const values = {
       userid: row.id,
+      timestamp: new Date(row.created_time).toLocaleString('en-GB', { timeZone: 'Asia/Jakarta' }),
       name: row.name,
       email: row.email,
       teamid: row.team_id,
@@ -118,6 +119,32 @@ async function updateTeamMembersSheet(data, sheet, sheetRows) {
   console.log(`[*] Added ${data.length} rows to Team Members.`);
 }
 
+async function populateAllFiles(filesMap, data) {
+  if(!data) {
+    return;
+  }
+
+  for (let obj of data) {
+    if(obj.poe_file_id) {
+      obj.poe_file = filesMap[obj.poe_file_id];
+    }
+    if(obj.student_id_file_id) {
+      obj.student_id_file = filesMap[obj.student_id_file_id];
+    }
+    if(obj.proof_of_payment_file_id) {
+      obj.proof_of_payment_file = filesMap[obj.proof_of_payment_file_id];
+    }
+    if(obj.preliminary_submission_file_id) {
+      obj.preliminary_submission_file = filesMap[obj.preliminary_submission_file_id];
+    }
+    if(obj.semifinal_submission_file_id) {
+      obj.semifinal_submission_file = filesMap[obj.semifinal_submission_file_id];
+    }
+  }
+
+  return data;
+}
+
 /**
  * Accessing Google Spreadsheet
  */
@@ -125,7 +152,7 @@ module.exports.accessSpreadsheet =  async function() {
   const doc = new GoogleSpreadsheet(process.env.GOOGLE_SPREADSHEET_ID);
   await promisify(doc.useServiceAccountAuth)(creds);
   const info = await promisify(doc.getInfo)();
-  const timestamp = new Date().toLocaleString();
+  const timestamp = new Date().toLocaleString('en-GB', { timeZone: 'Asia/Jakarta' });
 
   // Create new worksheets
   doc.addWorksheet({
@@ -140,20 +167,30 @@ module.exports.accessSpreadsheet =  async function() {
     doc.addWorksheet({
       title: `Team Members (${timestamp})`,
       headers: [
-        'User ID', 'Name', 'Email', 'Team ID', 'University', 'Major', 'Student ID URL',
+        'User ID', 'Timestamp', 'Name', 'Email', 'Team ID', 'University', 'Major', 'Student ID URL',
         'Student ID status', 'PoE URL', 'PoE status', 'Gender', 'Phone number'
       ]
     });
   });
 
+  // Get all files and map
+  console.log("[*] Retrieving files data..");
+  const files = await filesRepository.getAll();
+  const filesMap = files.reduce(function(map, obj) {
+    map[obj.id] = obj;
+    return map;
+  }, {});
+
   // Update teams
+  console.log("[*] Retrieving teams data..");
   let team = await teamsRepository.getAllTeams();
-  let teams = await filesRepository.getAllFiles(team);
+  let teams = await populateAllFiles(filesMap, team);
   await updateTeamsSheet(teams, info.worksheets[2], null);
 
   // Update users
+  console.log("[*] Retrieving team members data..");
   let user = await usersRepository.getAllUsers();
-  let users = await filesRepository.getAllFiles(user);
+  let users = await populateAllFiles(filesMap, user);
   await updateTeamMembersSheet(users, info.worksheets[3], null);
 
   // Delete old sheets
