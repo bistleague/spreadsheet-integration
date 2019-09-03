@@ -145,17 +145,32 @@ async function populateAllFiles(filesMap, data) {
   return data;
 }
 
+async function addWorksheet(doc, worksheet) {
+  return new Promise((resolve, reject) => {
+    try {
+      doc.addWorksheet(worksheet);
+      resolve();
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
 /**
  * Accessing Google Spreadsheet
  */
 module.exports.accessSpreadsheet =  async function() {
   const doc = new GoogleSpreadsheet(process.env.GOOGLE_SPREADSHEET_ID);
+
+  console.log("[*] Authenticating service account for Google Sheets..");
   await promisify(doc.useServiceAccountAuth)(creds);
+
+  console.log("[*] Retrieving sheets information..");
   const info = await promisify(doc.getInfo)();
   const timestamp = new Date().toLocaleString('en-GB', { timeZone: 'Asia/Jakarta' });
 
   // Create new worksheets
-  doc.addWorksheet({
+  const teamsWorksheet = {
     title: `Teams (${timestamp})`,
     headers: [
       'Team ID', 'Timestamp', 'Team name', 'University', 'Proof of payment URL', 'Proof of payment status',
@@ -163,15 +178,20 @@ module.exports.accessSpreadsheet =  async function() {
       'Semifinal qualified', 'Semifinal case file URL', 'Semifinal case submit time',
       'Semifinal case status', 'Final qualified'
     ]
-  }, () => {
-    doc.addWorksheet({
-      title: `Team Members (${timestamp})`,
-      headers: [
-        'User ID', 'Timestamp', 'Name', 'Email', 'Team ID', 'University', 'Major', 'Student ID URL',
-        'Student ID status', 'PoE URL', 'PoE status', 'Gender', 'Phone number'
-      ]
-    });
-  });
+  };
+  console.log("[*] Creating new Teams worksheet...");
+  await addWorksheet(doc, teamsWorksheet);
+
+  const teamMembersWorksheet = {
+    title: `Team Members (${timestamp})`,
+    headers: [
+      'User ID', 'Timestamp', 'Name', 'Email', 'Team ID', 'University', 'Major', 'Student ID URL',
+      'Student ID status', 'PoE URL', 'PoE status', 'Gender', 'Phone number'
+    ]
+  };
+
+  console.log("[*] Creating new Team Members worksheet...");
+  await addWorksheet(doc, teamMembersWorksheet);
 
   // Get all files and map
   console.log("[*] Retrieving files data..");
