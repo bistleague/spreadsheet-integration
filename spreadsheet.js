@@ -80,6 +80,7 @@ async function updateTeamsSheet(data, sheet, sheetRows) {
       timestamp: new Date(row.created_time).toLocaleString('en-GB', { timeZone: 'Asia/Jakarta' }),
       teamname: row.name,
       university: row.university,
+      teamdocuments: `https://dashboard.bistleague.com/admin/document/${row.team_id}`,
       proofofpaymenturl: row.proof_of_payment_file.url,
       proofofpaymentstatus: row.proof_of_payment_verified,
       stage: row.stage,
@@ -148,8 +149,9 @@ async function populateAllFiles(filesMap, data) {
 async function addWorksheet(doc, worksheet) {
   return new Promise((resolve, reject) => {
     try {
-      doc.addWorksheet(worksheet);
-      resolve();
+      doc.addWorksheet(worksheet, () => {
+        resolve();
+      });
     } catch (e) {
       reject(e);
     }
@@ -173,7 +175,7 @@ module.exports.accessSpreadsheet =  async function() {
   const teamsWorksheet = {
     title: `Teams (${timestamp})`,
     headers: [
-      'Team ID', 'Timestamp', 'Team name', 'University', 'Proof of payment URL', 'Proof of payment status',
+      'Team ID', 'Timestamp', 'Team name', 'University', 'Team documents', 'Proof of payment URL', 'Proof of payment status',
       'Stage', 'Preliminary case URL', 'Preliminary case submit time', 'Preliminary case status',
       'Semifinal qualified', 'Semifinal case file URL', 'Semifinal case submit time',
       'Semifinal case status', 'Final qualified'

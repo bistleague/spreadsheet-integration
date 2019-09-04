@@ -15,3 +15,5 @@ exports.exportToSheets = async (data, context) => {
     console.log("[x] Cron job failed to execute.", e);
   }
 };
+
+// exports.exportToSheets();
