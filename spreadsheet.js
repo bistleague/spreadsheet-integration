@@ -177,7 +177,7 @@ module.exports.accessSpreadsheet =  async function() {
     headers: [
       'Team ID', 'Timestamp', 'Team name', 'University', 'Team documents', 'Proof of payment URL', 'Proof of payment status',
       'Stage', 'Preliminary case URL', 'Preliminary case submit time', 'Preliminary case status',
-      'Semifinal qualified', 'Semifinal case file URL', 'Semifinal case submit time',
+      'Semifinal qualified', 'Semifinal case URL', 'Semifinal case submit time',
       'Semifinal case status', 'Final qualified'
     ]
   };
